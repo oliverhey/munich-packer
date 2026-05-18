@@ -1,25 +1,636 @@
-{
-  "name": "Munich Trip Planner",
-  "short_name": "Munich Trip",
-  "description": "Personal packing assistant for monthly Munich office trips",
-  "start_url": "https://oliverhey.github.io/munich-packer/",
-  "scope": "https://oliverhey.github.io/munich-packer/",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0f0f0f",
-  "theme_color": "#0f0f0f",
-  "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Munich Trip">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Munich Trip Planner</title>
+<style>
+:root {
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --glass-bg: rgba(255,255,255,0.12);
+  --glass-border: rgba(255,255,255,0.25);
+  --glass-shine: rgba(255,255,255,0.4);
+  --glass-shadow: rgba(0,0,0,0.3);
+  --text: #ffffff;
+  --text2: rgba(255,255,255,0.65);
+  --text3: rgba(255,255,255,0.35);
+  --accent: #64d2ff;
+  --accent2: #5e5ce6;
+  --green: #30d158;
+  --sep: rgba(255,255,255,0.12);
 }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  color: var(--text);
+  display: flex; flex-direction: column;
+  background: #0d0d1a;
+}
+
+/* Animated gradient background */
+.bg-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, #1e3a5f 0%, transparent 60%),
+    radial-gradient(ellipse 70% 80% at 80% 20%, #2d1b69 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 50% 80%, #0f4c3a 0%, transparent 60%),
+    radial-gradient(ellipse 90% 50% at 10% 90%, #1a0a3d 0%, transparent 50%),
+    #0d0d1a;
+  animation: bgShift 20s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  0% { filter: hue-rotate(0deg) brightness(1); }
+  50% { filter: hue-rotate(15deg) brightness(1.05); }
+  100% { filter: hue-rotate(-10deg) brightness(0.95); }
+}
+
+/* SVG filter for liquid glass distortion */
+.svg-filters { position: fixed; width: 0; height: 0; }
+
+/* Liquid glass base mixin */
+.glass {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  overflow: hidden;
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 40%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+}
+.glass::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+.glass > * { position: relative; z-index: 3; }
+
+/* Liquid glass card with edge refraction */
+.glass-card {
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.2),
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+
+/* Nav bar */
+.nav-bar {
+  position: relative; z-index: 100; flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border-bottom: 0.5px solid rgba(255,255,255,0.15);
+  padding-top: var(--safe-top);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08), 0 4px 16px rgba(0,0,0,0.2);
+}
+.nav-inner { height: 44px; display: flex; align-items: center; justify-content: center; position: relative; padding: 0 16px; }
+.nav-title { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+.nav-back {
+  position: absolute; left: 8px; display: none; align-items: center; gap: 3px;
+  background: none; border: none; color: var(--accent);
+  font-size: 17px; font-family: inherit; cursor: pointer; padding: 8px;
+}
+.nav-back svg { width: 11px; height: 18px; }
+
+/* Screens */
+.screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; position: relative; z-index: 1; }
+.screen.active { display: block; }
+.screen-inner { padding-bottom: calc(var(--safe-bottom) + 40px); }
+
+/* SETUP SCREEN */
+.setup-hero { padding: calc(28px) 24px 8px; }
+.setup-hero h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; }
+.setup-hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.setup-hero p { font-size: 15px; color: var(--text2); margin-top: 6px; }
+
+.section-wrap { margin: 20px 16px 0; }
+.section-label { font-size: 13px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; padding: 0 4px 8px; }
+
+/* Glass rows */
+.glass-list { border-radius: 20px; overflow: hidden; }
+.glass-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 18px; min-height: 52px;
+  border-top: 0.5px solid var(--sep);
+  position: relative; z-index: 3;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: background 0.15s;
+}
+.glass-row:first-child { border-top: none; border-radius: 20px 20px 0 0; }
+.glass-row:last-child { border-radius: 0 0 20px 20px; }
+.glass-row:only-child { border-radius: 20px; }
+.glass-row:active { background: rgba(255,255,255,0.12); }
+
+.row-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+.row-label { font-size: 17px; color: var(--text); flex: 1; letter-spacing: -0.01em; }
+.row-value { font-size: 15px; color: var(--text2); }
+
+/* Date inputs */
+.date-pair { border-radius: 20px; overflow: hidden; display: flex; }
+.date-half {
+  flex: 1; padding: 14px 18px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+.date-half + .date-half { border-left: 0.5px solid var(--sep); }
+.date-half label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.date-half input[type=date] {
+  background: none; border: none; outline: none;
+  color: var(--text); font-size: 16px; font-family: inherit; width: 100%;
+  color-scheme: dark;
+}
+
+/* iOS-style toggle */
+.ios-switch { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+.ios-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.ios-track {
+  position: absolute; inset: 0; border-radius: 16px; cursor: pointer;
+  background: rgba(255,255,255,0.15);
+  border: 0.5px solid rgba(255,255,255,0.2);
+  transition: background 0.25s ease, border-color 0.25s;
+}
+.ios-track::before {
+  content: ''; position: absolute; width: 27px; height: 27px; border-radius: 50%;
+  background: rgba(255,255,255,0.9); top: 2px; left: 2px;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+}
+.ios-switch input:checked + .ios-track { background: var(--green); border-color: var(--green); }
+.ios-switch input:checked + .ios-track::before { transform: translateX(20px); }
+
+/* CTA button — liquid glass style */
+.btn-wrap { padding: 24px 16px 0; }
+.liquid-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, rgba(100,210,255,0.35), rgba(94,92,230,0.35));
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(255,255,255,0.3);
+  border-radius: 16px;
+  color: #fff; font-size: 17px; font-weight: 600; font-family: inherit;
+  cursor: pointer; letter-spacing: -0.01em;
+  box-shadow: 0 0 0 0.5px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.35);
+  position: relative; overflow: hidden;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.liquid-btn::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.2), transparent);
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
+}
+.liquid-btn:active { transform: scale(0.98); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+.liquid-btn:disabled { opacity: 0.4; }
+
+/* Loading */
+.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 20px; }
+.glass-spinner {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 15px; color: var(--text2); }
+
+/* LIST SCREEN */
+.list-hero { padding: 20px 24px 0; }
+.list-hero h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.04em; }
+.list-hero p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+/* Progress — liquid glass pill */
+.progress-section { margin: 16px 16px 0; }
+.progress-glass {
+  border-radius: 14px; padding: 14px 16px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 16px rgba(0,0,0,0.2);
+}
+.progress-track { height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-bottom: 8px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s ease; }
+.progress-meta { display: flex; justify-content: space-between; }
+.progress-meta span { font-size: 13px; color: var(--text2); }
+
+/* Weather */
+.weather-glass {
+  margin: 16px 16px 0; border-radius: 20px; padding: 16px;
+  background: linear-gradient(135deg, rgba(100,210,255,0.2), rgba(94,92,230,0.15));
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 0.5px solid rgba(255,255,255,0.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 32px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden;
+}
+.weather-glass::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), transparent);
+  border-radius: 20px 20px 0 0; pointer-events: none;
+}
+.weather-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; position: relative; z-index: 1; }
+.weather-days { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; position: relative; z-index: 1; }
+.weather-days::-webkit-scrollbar { display: none; }
+.weather-day { flex-shrink: 0; flex: 1; min-width: 56px; text-align: center; padding: 8px 4px; border-radius: 12px; background: rgba(255,255,255,0.08); }
+.wd-name { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; margin-bottom: 4px; }
+.wd-icon { font-size: 18px; margin-bottom: 3px; }
+.wd-temp { font-size: 12px; color: #fff; font-weight: 600; }
+.wd-desc { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+
+/* Packing sections */
+.pack-section { margin: 20px 16px 0; }
+.pack-header { font-size: 13px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; padding: 0 4px 8px; display: flex; justify-content: space-between; align-items: center; }
+.pack-count { color: var(--accent); font-weight: 600; }
+
+/* Liquid glass list items */
+.pack-table { border-radius: 20px; overflow: hidden; }
+.pack-item {
+  display: flex; align-items: center; gap: 14px;
+  min-height: 52px; padding: 12px 18px;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  cursor: pointer; user-select: none; -webkit-user-select: none;
+  transition: background 0.12s;
+  position: relative; overflow: hidden;
+}
+.pack-item:first-child { border-top: none; border-radius: 20px 20px 0 0; }
+.pack-item:first-child::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+.pack-item:active { background: rgba(255,255,255,0.12); }
+
+/* Checkmark — liquid glass circle */
+.check-ring {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.check-ring.done {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(100,210,255,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.check-ring.done::after {
+  content: ''; width: 5px; height: 9px;
+  border: 2px solid #fff; border-top: none; border-left: none;
+  transform: rotate(45deg) translate(-1px,-1px); display: block;
+}
+.pack-label { font-size: 17px; color: var(--text); flex: 1; letter-spacing: -0.01em; transition: color 0.2s; }
+.pack-label.done { color: var(--text3); text-decoration: line-through; }
+.pack-qty {
+  font-size: 14px; color: var(--text2);
+  background: rgba(255,255,255,0.1); padding: 3px 9px;
+  border-radius: 10px; flex-shrink: 0;
+  border: 0.5px solid rgba(255,255,255,0.15);
+}
+
+/* Add row */
+.add-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 18px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 0 0 20px 20px;
+}
+.add-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 16px; font-family: inherit;
+  padding: 13px 0;
+}
+.add-input::placeholder { color: var(--text3); }
+.add-plus {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(100,210,255,0.5), rgba(94,92,230,0.5));
+  border: 0.5px solid rgba(255,255,255,0.3);
+  color: #fff; font-size: 20px; font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; line-height: 1; padding-bottom: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: transform 0.1s;
+}
+.add-plus:active { transform: scale(0.9); }
+
+/* Last item radius when followed by add-row */
+.pack-item:last-of-type { border-radius: 0; }
+</style>
+</head>
+<body>
+
+<!-- SVG filter for glass distortion -->
+<svg class="svg-filters" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glass-distort" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.018" numOctaves="2" seed="42" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="0.5" result="blur"/>
+      <feDisplacementMap in="SourceGraphic" in2="blur" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="bg-canvas"></div>
+
+<div class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-back" id="nav-back" onclick="goBack()">
+      <svg viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,1 1,9 9,17"/></svg>
+      &nbsp;Back
+    </button>
+    <div class="nav-title" id="nav-title">Munich Trip</div>
+  </div>
+</div>
+
+<!-- SCREEN 1: Setup -->
+<div class="screen active" id="screen-setup">
+  <div class="screen-inner">
+    <div class="setup-hero">
+      <h1>Pack for<br><em>Munich.</em></h1>
+      <p>Dates in, packing list out.</p>
+    </div>
+
+    <div class="section-wrap">
+      <div class="section-label">Travel dates</div>
+      <div class="date-pair glass" style="border-radius:20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 8px 32px rgba(0,0,0,0.3);">
+        <div class="date-half">
+          <label>Departure</label>
+          <input type="date" id="dep-date">
+        </div>
+        <div class="date-half">
+          <label>Return</label>
+          <input type="date" id="ret-date">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="section-label">Options</div>
+      <div class="pack-table glass" style="border-radius:20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 8px 32px rgba(0,0,0,0.3);">
+        <div class="glass-row">
+          <div class="row-icon" style="background: rgba(255,149,0,0.3); border: 0.5px solid rgba(255,149,0,0.4);">🏋️</div>
+          <span class="row-label">Going to the gym?</span>
+          <label class="ios-switch"><input type="checkbox" id="gym-toggle"><span class="ios-track"></span></label>
+        </div>
+        <div class="glass-row">
+          <div class="row-icon" style="background: rgba(90,200,250,0.3); border: 0.5px solid rgba(90,200,250,0.4);">🧴</div>
+          <span class="row-label">Restock Munich toiletries?</span>
+          <label class="ios-switch"><input type="checkbox" id="toiletries-toggle"><span class="ios-track"></span></label>
+        </div>
+        <div class="glass-row" style="border-radius: 0 0 20px 20px;">
+          <div class="row-icon" style="background: rgba(255,255,255,0.15); border: 0.5px solid rgba(255,255,255,0.2);">💻</div>
+          <span class="row-label">Bringing private laptop?</span>
+          <label class="ios-switch"><input type="checkbox" id="laptop-toggle"><span class="ios-track"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-wrap">
+      <button class="liquid-btn" id="gen-btn" onclick="startGeneration()">Build Packing List</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: Loading -->
+<div class="screen" id="screen-loading">
+  <div class="loading-wrap">
+    <div class="glass-spinner"></div>
+    <div class="loading-text" id="loader-text">Checking Munich weather…</div>
+  </div>
+</div>
+
+<!-- SCREEN 3: List -->
+<div class="screen" id="screen-list">
+  <div class="screen-inner">
+    <div class="list-hero">
+      <h1 id="trip-title">Munich</h1>
+      <p id="trip-meta"></p>
+    </div>
+    <div class="progress-section">
+      <div class="progress-glass">
+        <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+        <div class="progress-meta"><span id="prog-text">0 of 0 packed</span><span id="prog-pct">0%</span></div>
+      </div>
+    </div>
+    <div id="weather-section"></div>
+    <div id="packing-sections"></div>
+  </div>
+</div>
+
+<script>
+const MUNICH_LAT = 48.1351, MUNICH_LON = 11.5820;
+let allItemIds = [], checkedIds = new Set();
+
+function show(id, title) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('nav-title').textContent = title || 'Munich Trip';
+  document.getElementById('nav-back').style.display = id === 'screen-list' ? 'flex' : 'none';
+}
+function goBack() { show('screen-setup', 'Munich Trip'); }
+
+async function startGeneration() {
+  const dep = document.getElementById('dep-date').value;
+  const ret = document.getElementById('ret-date').value;
+  if (!dep || !ret || new Date(ret) <= new Date(dep)) { alert('Please select valid dates.'); return; }
+  const gym = document.getElementById('gym-toggle').checked;
+  const toiletries = document.getElementById('toiletries-toggle').checked;
+  const privateLaptop = document.getElementById('laptop-toggle').checked;
+  const nights = Math.round((new Date(ret) - new Date(dep)) / 86400000);
+  show('screen-loading', 'Munich Trip');
+  let weather = null;
+  try {
+    const dates = getDates(dep, ret);
+    const start = dates[0].toISOString().split('T')[0];
+    const end = dates[dates.length-1].toISOString().split('T')[0];
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${MUNICH_LAT}&longitude=${MUNICH_LON}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Europe%2FBerlin&start_date=${start}&end_date=${end}`);
+    weather = await res.json();
+    document.getElementById('loader-text').textContent = 'Building your list…';
+    await sleep(400);
+  } catch(e) { await sleep(600); }
+  const w = analyzeWeather(weather);
+  renderTrip(dep, ret, nights, w, weather, gym, toiletries, privateLaptop);
+  show('screen-list', 'Packing List');
+}
+
+function getDates(dep, ret) {
+  const dates = [], cur = new Date(dep), last = new Date(ret);
+  while (cur <= last) { dates.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+  return dates;
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function analyzeWeather(data) {
+  if (!data || !data.daily) return { cold:false, warm:false, mild:true, hasRain:false, hasSnow:false };
+  const avg = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+  const avgMax = avg(data.daily.temperature_2m_max);
+  return {
+    cold: avgMax < 10, warm: avgMax > 22, mild: avgMax >= 10 && avgMax <= 22,
+    hasRain: data.daily.weathercode.some(c => c >= 51 && c < 71),
+    hasSnow: data.daily.weathercode.some(c => c >= 71 && c <= 77)
+  };
+}
+function wCodeInfo(c) {
+  if (c===0) return {icon:'☀️',desc:'Clear'};
+  if (c<=2) return {icon:'⛅',desc:'Partly cloudy'};
+  if (c===3) return {icon:'☁️',desc:'Overcast'};
+  if (c<=48) return {icon:'🌫️',desc:'Fog'};
+  if (c<=57) return {icon:'🌦️',desc:'Drizzle'};
+  if (c<=67) return {icon:'🌧️',desc:'Rain'};
+  if (c<=77) return {icon:'❄️',desc:'Snow'};
+  if (c<=82) return {icon:'🌦️',desc:'Showers'};
+  return {icon:'⛈️',desc:'Storm'};
+}
+
+function renderTrip(dep, ret, nights, w, weatherData, gym, toiletries, privateLaptop) {
+  const fmt = d => new Date(d).toLocaleDateString('en-DE', {day:'numeric', month:'short'});
+  document.getElementById('trip-title').textContent = 'Munich';
+  document.getElementById('trip-meta').textContent = `${fmt(dep)} – ${fmt(ret)} · ${nights} night${nights>1?'s':''} · office trip`;
+
+  if (weatherData && weatherData.daily) {
+    const dates = getDates(dep, ret);
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let html = `<div class="weather-glass"><div class="weather-label">☁ Munich Forecast</div><div class="weather-days">`;
+    dates.forEach((d,i) => {
+      const info = wCodeInfo(weatherData.daily.weathercode[i]);
+      const hi = Math.round(weatherData.daily.temperature_2m_max[i]);
+      const lo = Math.round(weatherData.daily.temperature_2m_min[i]);
+      html += `<div class="weather-day"><div class="wd-name">${days[d.getDay()]}</div><div class="wd-icon">${info.icon}</div><div class="wd-temp">${lo}–${hi}°</div><div class="wd-desc">${info.desc}</div></div>`;
+    });
+    html += `</div></div>`;
+    document.getElementById('weather-section').innerHTML = html;
+  }
+
+  const sections = buildSections(nights, w, gym, toiletries, privateLaptop);
+  allItemIds = []; checkedIds.clear();
+  let html = '';
+  sections.forEach(sec => {
+    sec.items.forEach((_, i) => allItemIds.push(`${sec.key}-${i}`));
+    html += `<div class="pack-section">
+      <div class="pack-header"><span>${sec.label}</span><span class="pack-count" id="count-${sec.key}"></span></div>
+      <div class="pack-table" id="card-${sec.key}">`;
+    sec.items.forEach((item, i) => {
+      const id = `${sec.key}-${i}`;
+      html += `<div class="pack-item" id="row-${id}" onclick="toggle('${id}')">
+        <div class="check-ring" id="chk-${id}"></div>
+        <div class="pack-label" id="txt-${id}">${item.name}</div>
+        ${item.qty ? `<div class="pack-qty">×${item.qty}</div>` : ''}
+      </div>`;
+    });
+    html += `<div class="add-row">
+      <input type="text" class="add-input" id="add-${sec.key}" placeholder="Add item…" onkeydown="if(event.key==='Enter')addItem('${sec.key}')">
+      <button class="add-plus" onclick="addItem('${sec.key}')">+</button>
+    </div></div></div>`;
+  });
+  document.getElementById('packing-sections').innerHTML = html;
+  sections.forEach(s => updateCount(s.key));
+  updateProgress();
+}
+
+function toggle(id) {
+  checkedIds.has(id) ? checkedIds.delete(id) : checkedIds.add(id);
+  const done = checkedIds.has(id);
+  document.getElementById('chk-'+id).className = 'check-ring'+(done?' done':'');
+  document.getElementById('txt-'+id).className = 'pack-label'+(done?' done':'');
+  const secKey = id.replace(/-\d+$/, '').replace(/-c\d+$/, '');
+  updateCount(secKey);
+  updateProgress();
+}
+
+function addItem(secKey) {
+  const input = document.getElementById('add-'+secKey);
+  const val = input.value.trim(); if (!val) return;
+  const id = `${secKey}-c${Date.now()}`;
+  allItemIds.push(id);
+  const card = document.getElementById('card-'+secKey);
+  const addRow = card.querySelector('.add-row');
+  const el = document.createElement('div');
+  el.className = 'pack-item'; el.id = 'row-'+id;
+  el.onclick = () => toggle(id);
+  el.innerHTML = `<div class="check-ring" id="chk-${id}"></div><div class="pack-label" id="txt-${id}">${val}</div>`;
+  card.insertBefore(el, addRow);
+  input.value = '';
+  updateCount(secKey);
+  updateProgress();
+}
+
+function updateCount(secKey) {
+  const items = allItemIds.filter(id => id.startsWith(secKey+'-') || id === secKey);
+  const checked = items.filter(id => checkedIds.has(id)).length;
+  const el = document.getElementById('count-'+secKey);
+  if (el) el.textContent = items.length > 0 && checked > 0 ? `${checked}/${items.length}` : '';
+}
+
+function updateProgress() {
+  const total = allItemIds.length, done = checkedIds.size;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-text').textContent = `${done} of ${total} packed`;
+  document.getElementById('prog-pct').textContent = pct+'%';
+}
+
+function buildSections(nights, w, gym, toiletries, privateLaptop) {
+  const n = nights + 1, pants = Math.ceil(n/2);
+  return [
+    { key:'work', label:'💼  Work Essentials', items:[
+      {name:'Work laptop'},{name:'Work badge / access card'},{name:'Notebook & pen'},{name:'Reusable water bottle'},
+    ]},
+    { key:'tech', label:'🔌  Tech & Charging', items:[
+      {name:'iPhone'},{name:'iPad'},{name:'Apple Watch'},
+      {name:'Laptop charger (work)'},{name:'iPhone cable / charger'},{name:'iPad charger'},
+      {name:'Apple Watch charger'},{name:'Power bank'},
+      ...(privateLaptop?[{name:'Private laptop'},{name:'Private laptop charger'}]:[]),
+    ]},
+    { key:'clothing', label:'👕  Clothing', items:[
+      {name:'T-shirts / casual tops', qty:n},{name:'Underwear', qty:n},{name:'Socks', qty:n},
+      {name:'Smart-casual trousers / chinos', qty:pants},{name:'Pyjamas'},{name:'Belt'},
+      ...(w.cold||w.hasSnow?[{name:'Warm coat'},{name:'Jumper / hoodie'},{name:'Scarf & gloves'}]:[]),
+      ...(w.mild?[{name:'Light jacket or hoodie'}]:[]),
+      ...(w.warm?[{name:'Light layer for A/C indoors'}]:[]),
+      ...(w.hasRain&&!w.hasSnow?[{name:'Compact umbrella / rain jacket'}]:[]),
+      ...(w.hasSnow?[{name:'Waterproof boots'}]:[]),
+    ]},
+    { key:'footwear', label:'👟  Footwear', items:[
+      {name:'Smart-casual shoes (office)'},{name:'Casual sneakers'},
+    ]},
+    { key:'personal', label:'🪪  Personal Essentials', items:[
+      {name:'Wallet'},{name:'House keys'},{name:'Reading glasses'},{name:'Sunglasses'},{name:'ID / passport'},
+    ]},
+    ...(gym?[{ key:'gym', label:'🏋️  Gym Bag', items:[
+      {name:'Gym card'},{name:'Gym shoes'},{name:'Gym pants'},
+      {name:'Gym shirts', qty:Math.max(1,Math.ceil(nights/2))},{name:'Sports socks'},{name:'Gym towel'},
+    ]}]:[]),
+    ...(toiletries?[{ key:'toiletries', label:'🧴  Munich Go Bag Restock', items:[
+      {name:'Shower gel'},{name:'Shampoo'},{name:'Contact lenses (supply)'},{name:'Contact lens solution'},
+      {name:'Pomade / hair product'},{name:'After shave / balm'},{name:'Deodorant'},{name:'Toothbrush & toothpaste'},
+    ]}]:[]),
+  ];
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
