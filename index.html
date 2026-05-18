@@ -6,268 +6,432 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Munich Trip">
-<meta name="theme-color" content="#0f0f0f">
+<meta name="theme-color" content="#f2f2f7">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Munich Trip Planner</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0f0f0f;
-  --bg2: #1a1a1a;
-  --bg3: #242424;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.15);
-  --text: #f0f0f0;
-  --text2: #888;
-  --text3: #555;
-  --accent: #c8f03c;
-  --accent2: #a8cc2a;
-  --danger: #ff5f5f;
-  --safe: env(safe-area-inset-bottom, 0px);
+  --ios-bg: #f2f2f7;
+  --ios-bg2: #ffffff;
+  --ios-bg3: #e5e5ea;
+  --ios-separator: rgba(60,60,67,0.12);
+  --ios-separator2: rgba(60,60,67,0.2);
+  --ios-label: #000000;
+  --ios-label2: rgba(60,60,67,0.6);
+  --ios-label3: rgba(60,60,67,0.3);
+  --ios-label4: rgba(60,60,67,0.18);
+  --ios-blue: #007aff;
+  --ios-green: #34c759;
+  --ios-red: #ff3b30;
+  --ios-orange: #ff9500;
+  --ios-gray: #8e8e93;
+  --ios-gray2: #aeaeb2;
+  --ios-gray3: #c7c7cc;
+  --ios-gray4: #d1d1d6;
+  --ios-gray5: #e5e5ea;
+  --ios-gray6: #f2f2f7;
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ios-bg: #000000;
+    --ios-bg2: #1c1c1e;
+    --ios-bg3: #2c2c2e;
+    --ios-separator: rgba(84,84,88,0.65);
+    --ios-separator2: rgba(84,84,88,0.8);
+    --ios-label: #ffffff;
+    --ios-label2: rgba(235,235,245,0.6);
+    --ios-label3: rgba(235,235,245,0.3);
+    --ios-label4: rgba(235,235,245,0.18);
+    --ios-blue: #0a84ff;
+    --ios-green: #30d158;
+    --ios-red: #ff453a;
+    --ios-orange: #ff9f0a;
+    --ios-gray: #8e8e93;
+    --ios-gray2: #636366;
+    --ios-gray3: #48484a;
+    --ios-gray4: #3a3a3c;
+    --ios-gray5: #2c2c2e;
+    --ios-gray6: #1c1c1e;
+  }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
-body { display: flex; flex-direction: column; }
+html { height: 100%; }
+body {
+  font-family: -apple-system, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  background: var(--ios-bg);
+  color: var(--ios-label);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-.app-header {
-  padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 16px;
-  border-bottom: 0.5px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
+/* Nav bar */
+.nav-bar {
+  background: rgba(242,242,247,0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--ios-separator);
+  padding-top: var(--safe-top);
   flex-shrink: 0;
-  background: var(--bg);
+  position: relative;
+  z-index: 10;
 }
-.app-title { font-size: 13px; font-weight: 500; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
-.app-logo { font-size: 18px; }
-.back-btn { font-size: 13px; color: var(--accent); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 4px 0; display: none; }
+@media (prefers-color-scheme: dark) {
+  .nav-bar { background: rgba(28,28,30,0.85); }
+}
+.nav-inner {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0 16px;
+}
+.nav-title { font-size: 17px; font-weight: 600; color: var(--ios-label); }
+.nav-back {
+  position: absolute; left: 8px;
+  display: none; align-items: center; gap: 2px;
+  background: none; border: none; color: var(--ios-blue);
+  font-size: 17px; font-family: inherit; cursor: pointer;
+  padding: 8px;
+}
+.nav-back svg { width: 12px; height: 20px; }
+.nav-back span { margin-left: 2px; }
 
-.screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; padding-bottom: calc(var(--safe) + 24px); }
+/* Screens */
+.screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; }
 .screen.active { display: block; }
+.screen-inner { padding-bottom: calc(var(--safe-bottom) + 32px); }
 
-/* SCREEN 1 — Setup */
-.setup-hero { padding: 32px 20px 20px; }
-.setup-hero h1 { font-size: 28px; font-weight: 300; line-height: 1.2; color: var(--text); margin-bottom: 6px; }
-.setup-hero h1 span { color: var(--accent); font-weight: 500; }
-.setup-hero p { font-size: 14px; color: var(--text2); }
+/* Grouped table sections (iOS style) */
+.ios-section { margin: 28px 0 0; padding: 0 16px; }
+.ios-section-header {
+  font-size: 13px; font-weight: 400;
+  color: var(--ios-label2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0 16px 6px;
+  margin: 0 0 0;
+}
+.ios-section-footer {
+  font-size: 13px; color: var(--ios-label2);
+  padding: 8px 16px 0;
+  line-height: 1.4;
+}
+.ios-table {
+  background: var(--ios-bg2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ios-row {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-top: 0.5px solid var(--ios-separator);
+  position: relative;
+  gap: 12px;
+}
+.ios-row:first-child { border-top: none; }
+.ios-row-icon {
+  width: 29px; height: 29px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 15px;
+}
+.row-label { font-size: 17px; color: var(--ios-label); flex: 1; }
+.row-detail { font-size: 17px; color: var(--ios-label2); }
 
-.section-block { margin: 0 16px 12px; background: var(--bg2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
-.section-label { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Mono', monospace; padding: 14px 16px 6px; }
+/* iOS Toggle */
+.ios-switch { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+.ios-switch input { opacity: 0; width: 0; height: 0; }
+.ios-switch-track {
+  position: absolute; inset: 0; border-radius: 16px;
+  background: var(--ios-gray4);
+  transition: background 0.25s ease;
+  cursor: pointer;
+}
+.ios-switch-track::before {
+  content: '';
+  position: absolute;
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  top: 2px; left: 2px;
+  transition: transform 0.25s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16), 0 3px 1px rgba(0,0,0,0.1);
+}
+.ios-switch input:checked + .ios-switch-track { background: var(--ios-green); }
+.ios-switch input:checked + .ios-switch-track::before { transform: translateX(20px); }
 
-.date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
-.date-cell { background: var(--bg2); padding: 10px 16px 14px; }
-.date-cell label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 4px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
-.date-cell input[type=date] {
-  background: none; border: none; color: var(--text);
-  font-size: 16px; font-family: 'DM Sans', sans-serif; font-weight: 400;
-  width: 100%; outline: none; cursor: pointer;
-  color-scheme: dark;
+/* Date inputs */
+.date-pair { display: flex; background: var(--ios-bg2); border-radius: 10px; overflow: hidden; }
+.date-half { flex: 1; padding: 12px 16px; }
+.date-half + .date-half { border-left: 0.5px solid var(--ios-separator); }
+.date-half label { font-size: 13px; color: var(--ios-label2); display: block; margin-bottom: 2px; }
+.date-half input[type=date] {
+  background: none; border: none; outline: none;
+  color: var(--ios-label); font-size: 17px;
+  font-family: inherit; width: 100%;
+  color-scheme: light dark;
 }
 
-.toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-top: 0.5px solid var(--border); }
-.toggle-item:first-child { border-top: none; }
-.toggle-info { flex: 1; }
-.toggle-name { font-size: 15px; color: var(--text); }
-.toggle-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
-.ios-toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; margin-left: 12px; }
-.ios-toggle input { opacity: 0; width: 0; height: 0; }
-.ios-track { position: absolute; inset: 0; border-radius: 13px; background: var(--bg3); border: 0.5px solid var(--border2); transition: background 0.25s; cursor: pointer; }
-.ios-track:before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--text2); top: 3px; left: 3px; transition: transform 0.25s, background 0.25s; }
-.ios-toggle input:checked + .ios-track { background: var(--accent); border-color: var(--accent); }
-.ios-toggle input:checked + .ios-track:before { transform: translateX(18px); background: #0f0f0f; }
-
-.generate-wrap { padding: 20px 16px; }
-.generate-btn {
-  width: 100%; padding: 16px;
-  background: var(--accent); color: #0f0f0f;
-  border: none; border-radius: 14px;
-  font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif;
-  cursor: pointer; letter-spacing: 0.01em;
-  transition: opacity 0.15s, transform 0.1s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+/* CTA button */
+.ios-btn-wrap { padding: 0 16px; margin-top: 32px; }
+.ios-btn {
+  width: 100%; padding: 15px;
+  background: var(--ios-blue);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 17px; font-weight: 600; font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
 }
-.generate-btn:active { transform: scale(0.98); opacity: 0.85; }
-.generate-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ios-btn:active { opacity: 0.7; }
+.ios-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* SCREEN 2 — Loading */
-.loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; }
-.loader-ring { width: 48px; height: 48px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+/* Loading */
+.loading-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 60vh; gap: 16px;
+}
+.ios-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--ios-gray4);
+  border-top-color: var(--ios-gray);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-.loader-text { font-size: 14px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.loading-text { font-size: 15px; color: var(--ios-label2); }
 
-/* SCREEN 3 — List */
-.list-header { padding: 20px 20px 12px; }
-.trip-title { font-size: 22px; font-weight: 300; color: var(--text); }
-.trip-title strong { font-weight: 500; color: var(--accent); }
-.trip-meta { font-size: 13px; color: var(--text2); margin-top: 3px; font-family: 'DM Mono', monospace; }
+/* List screen */
+.list-hero { padding: 12px 20px 0; }
+.list-hero h1 { font-size: 34px; font-weight: 700; letter-spacing: 0.37px; line-height: 1.1; }
+.list-hero p { font-size: 15px; color: var(--ios-label2); margin-top: 4px; }
 
-.progress-wrap { margin: 0 16px 16px; }
-.progress-track { height: 3px; background: var(--bg3); border-radius: 2px; margin-bottom: 6px; }
-.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
-.progress-text { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; display: flex; justify-content: space-between; }
+/* Progress */
+.progress-section { margin: 16px 16px 0; }
+.progress-track { height: 4px; background: var(--ios-gray5); border-radius: 2px; }
+.progress-fill { height: 100%; background: var(--ios-blue); border-radius: 2px; transition: width 0.4s ease; }
+.progress-meta { display: flex; justify-content: space-between; margin-top: 6px; }
+.progress-meta span { font-size: 13px; color: var(--ios-label2); }
 
-.weather-strip { margin: 0 16px 12px; background: var(--bg2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
-.weather-strip-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; padding: 12px 16px 8px; }
-.weather-days { display: flex; gap: 1px; background: var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Weather card */
+.weather-card {
+  margin: 20px 16px 0;
+  background: var(--ios-blue);
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow: hidden;
+}
+.weather-card-label { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.weather-days { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; }
 .weather-days::-webkit-scrollbar { display: none; }
-.weather-day { background: var(--bg2); flex-shrink: 0; padding: 10px 14px 12px; text-align: center; min-width: 72px; flex: 1; }
-.wd-name { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
-.wd-icon { font-size: 18px; margin-bottom: 4px; }
-.wd-temp { font-size: 12px; color: var(--text); font-weight: 500; }
-.wd-desc { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.weather-day { flex-shrink: 0; flex: 1; min-width: 60px; text-align: center; padding: 0 4px; }
+.wd-name { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500; margin-bottom: 4px; }
+.wd-icon { font-size: 20px; margin-bottom: 4px; }
+.wd-temp { font-size: 13px; color: #fff; font-weight: 500; }
+.wd-desc { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 1px; }
 
-.list-section { margin: 0 16px 10px; }
-.list-section-hdr { font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Mono', monospace; padding: 4px 0 8px; display: flex; align-items: center; gap: 6px; }
-.list-section-hdr .sec-count { color: var(--accent); }
-.list-card { background: var(--bg2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
-.list-item { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-top: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s; user-select: none; }
-.list-item:first-child { border-top: none; }
-.list-item:active { background: var(--bg3); }
-.item-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
-.item-check.done { background: var(--accent); border-color: var(--accent); }
-.item-check.done::after { content: ''; width: 5px; height: 9px; border: 2px solid #0f0f0f; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px, -1px); display: block; }
-.item-text { font-size: 15px; color: var(--text); flex: 1; transition: color 0.2s; }
-.item-text.done { color: var(--text3); text-decoration: line-through; }
-.item-qty { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; background: var(--bg3); padding: 2px 7px; border-radius: 8px; flex-shrink: 0; }
+/* Packing items */
+.pack-section { margin: 24px 0 0; }
+.pack-section-header {
+  font-size: 13px; color: var(--ios-label2);
+  text-transform: uppercase; letter-spacing: 0.02em;
+  padding: 0 32px 6px;
+  display: flex; justify-content: space-between;
+}
+.pack-section-count { color: var(--ios-blue); font-weight: 500; }
+.pack-table { background: var(--ios-bg2); margin: 0 16px; border-radius: 10px; overflow: hidden; }
+.pack-item {
+  display: flex; align-items: center;
+  min-height: 44px; padding: 10px 16px;
+  border-top: 0.5px solid var(--ios-separator);
+  gap: 14px; cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.1s;
+}
+.pack-item:first-child { border-top: none; }
+.pack-item:active { background: var(--ios-gray6); }
+@media (prefers-color-scheme: dark) { .pack-item:active { background: var(--ios-gray5); } }
 
-.add-row { display: flex; align-items: center; gap: 0; border-top: 0.5px solid var(--border); background: var(--bg2); }
-.add-input { flex: 1; background: none; border: none; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; padding: 12px 16px; outline: none; }
-.add-input::placeholder { color: var(--text3); }
-.add-btn { width: 36px; height: 36px; background: var(--accent); border: none; border-radius: 50%; margin-right: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; color: #0f0f0f; font-weight: 300; line-height: 1; transition: transform 0.1s; }
-.add-btn:active { transform: scale(0.9); }
+.check-circle {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--ios-gray3);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.check-circle.checked {
+  background: var(--ios-blue);
+  border-color: var(--ios-blue);
+}
+.check-circle.checked::after {
+  content: '';
+  width: 5px; height: 9px;
+  border: 2px solid #fff;
+  border-top: none; border-left: none;
+  transform: rotate(45deg) translate(-1px,-1px);
+  display: block;
+}
+.pack-label { font-size: 17px; color: var(--ios-label); flex: 1; transition: color 0.2s; }
+.pack-label.checked { color: var(--ios-label3); text-decoration: line-through; }
+.pack-qty {
+  font-size: 15px; color: var(--ios-label2);
+  background: var(--ios-gray6); padding: 2px 8px;
+  border-radius: 8px; flex-shrink: 0;
+}
+@media (prefers-color-scheme: dark) { .pack-qty { background: var(--ios-gray5); } }
 
+/* Add item row */
+.add-row {
+  display: flex; align-items: center;
+  border-top: 0.5px solid var(--ios-separator);
+  background: var(--ios-bg2);
+  padding: 0 16px; gap: 10px;
+}
+.add-row input[type=text] {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--ios-label); font-size: 17px; font-family: inherit;
+  padding: 11px 0;
+}
+.add-row input::placeholder { color: var(--ios-label3); }
+.add-plus {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--ios-blue); border: none;
+  color: #fff; font-size: 20px; font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; line-height: 1;
+  padding-bottom: 1px;
+}
+.add-plus:active { opacity: 0.7; }
 </style>
 </head>
 <body>
 
-<div class="app-header">
-  <div class="app-title">Munich Trip</div>
-  <button class="back-btn" id="back-btn" onclick="goBack()">← New trip</button>
+<div class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-back" id="nav-back" onclick="goBack()">
+      <svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,2 2,10 10,18"/></svg>
+      <span>Back</span>
+    </button>
+    <div class="nav-title" id="nav-title">Munich Trip</div>
+  </div>
 </div>
 
 <!-- SCREEN 1: Setup -->
 <div class="screen active" id="screen-setup">
-  <div class="setup-hero">
-    <h1>Pack for<br><span>Munich.</span></h1>
-    <p>Enter your dates and I'll handle the rest.</p>
-  </div>
+  <div class="screen-inner">
+    <div class="ios-section" style="margin-top:20px;">
+      <div class="ios-section-header">Travel dates</div>
+      <div class="date-pair ios-table">
+        <div class="date-half">
+          <label>Departure</label>
+          <input type="date" id="dep-date">
+        </div>
+        <div class="date-half">
+          <label>Return</label>
+          <input type="date" id="ret-date">
+        </div>
+      </div>
+    </div>
 
-  <div class="section-block">
-    <div class="section-label">Travel dates</div>
-    <div class="date-row">
-      <div class="date-cell">
-        <label>Departure</label>
-        <input type="date" id="dep-date">
+    <div class="ios-section">
+      <div class="ios-section-header">Options</div>
+      <div class="ios-table">
+        <div class="ios-row">
+          <div class="ios-row-icon" style="background:#ff9500;">🏋️</div>
+          <span class="row-label">Going to the gym?</span>
+          <label class="ios-switch"><input type="checkbox" id="gym-toggle"><span class="ios-switch-track"></span></label>
+        </div>
+        <div class="ios-row">
+          <div class="ios-row-icon" style="background:#5ac8fa;">🧴</div>
+          <span class="row-label">Restock Munich toiletries?</span>
+          <label class="ios-switch"><input type="checkbox" id="toiletries-toggle"><span class="ios-switch-track"></span></label>
+        </div>
+        <div class="ios-row">
+          <div class="ios-row-icon" style="background:#636366;">💻</div>
+          <span class="row-label">Bringing private laptop?</span>
+          <label class="ios-switch"><input type="checkbox" id="laptop-toggle"><span class="ios-switch-track"></span></label>
+        </div>
       </div>
-      <div class="date-cell">
-        <label>Return</label>
-        <input type="date" id="ret-date">
-      </div>
+      <div class="ios-section-footer">Weather is fetched live from Open-Meteo and adapts your clothing list automatically.</div>
     </div>
-  </div>
 
-  <div class="section-block">
-    <div class="section-label">Options</div>
-    <div class="toggle-item">
-      <div class="toggle-info">
-        <div class="toggle-name">Going to the gym?</div>
-        <div class="toggle-sub">Adds gym bag section</div>
-      </div>
-      <label class="ios-toggle"><input type="checkbox" id="gym-toggle"><span class="ios-track"></span></label>
+    <div class="ios-btn-wrap">
+      <button class="ios-btn" id="gen-btn" onclick="startGeneration()">Build Packing List</button>
     </div>
-    <div class="toggle-item">
-      <div class="toggle-info">
-        <div class="toggle-name">Restock Munich toiletries?</div>
-        <div class="toggle-sub">Go bag top-up checklist</div>
-      </div>
-      <label class="ios-toggle"><input type="checkbox" id="toiletries-toggle"><span class="ios-track"></span></label>
-    </div>
-    <div class="toggle-item">
-      <div class="toggle-info">
-        <div class="toggle-name">Bringing private laptop?</div>
-        <div class="toggle-sub">Adds laptop + charger</div>
-      </div>
-      <label class="ios-toggle"><input type="checkbox" id="laptop-toggle"><span class="ios-track"></span></label>
-    </div>
-  </div>
-
-  <div class="generate-wrap">
-    <button class="generate-btn" id="gen-btn" onclick="startGeneration()">
-      Build my packing list →
-    </button>
   </div>
 </div>
 
 <!-- SCREEN 2: Loading -->
 <div class="screen" id="screen-loading">
-  <div class="loading-screen">
-    <div class="loader-ring"></div>
-    <div class="loader-text" id="loader-text">checking munich weather...</div>
+  <div class="loading-wrap">
+    <div class="ios-spinner"></div>
+    <div class="loading-text" id="loader-text">Checking Munich weather…</div>
   </div>
 </div>
 
 <!-- SCREEN 3: List -->
 <div class="screen" id="screen-list">
-  <div class="list-header">
-    <div class="trip-title" id="trip-title">Munich</div>
-    <div class="trip-meta" id="trip-meta"></div>
+  <div class="screen-inner">
+    <div class="list-hero">
+      <h1 id="trip-title">Munich</h1>
+      <p id="trip-meta"></p>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="progress-meta">
+        <span id="prog-text">0 of 0 packed</span>
+        <span id="prog-pct">0%</span>
+      </div>
+    </div>
+
+    <div id="weather-section"></div>
+    <div id="packing-sections"></div>
   </div>
-  <div class="progress-wrap">
-    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
-    <div class="progress-text"><span id="prog-text">0 of 0 packed</span><span id="prog-pct">0%</span></div>
-  </div>
-  <div id="weather-section"></div>
-  <div id="packing-sections"></div>
 </div>
 
 <script>
 const MUNICH_LAT = 48.1351, MUNICH_LON = 11.5820;
 let allItemIds = [], checkedIds = new Set();
 
-function show(id) {
+function show(id, title) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.getElementById('back-btn').style.display = id === 'screen-list' ? 'block' : 'none';
+  document.getElementById('nav-title').textContent = title || 'Munich Trip';
+  document.getElementById('nav-back').style.display = id === 'screen-list' ? 'flex' : 'none';
 }
 
-function goBack() {
-  show('screen-setup');
-  document.getElementById('packing-sections').innerHTML = '';
-  document.getElementById('weather-section').innerHTML = '';
-  allItemIds = []; checkedIds.clear();
-}
+function goBack() { show('screen-setup', 'Munich Trip'); }
 
 async function startGeneration() {
   const dep = document.getElementById('dep-date').value;
   const ret = document.getElementById('ret-date').value;
-  if (!dep || !ret || new Date(ret) <= new Date(dep)) { alert('Please pick valid dates.'); return; }
-
+  if (!dep || !ret || new Date(ret) <= new Date(dep)) { alert('Please select valid dates.'); return; }
   const gym = document.getElementById('gym-toggle').checked;
   const toiletries = document.getElementById('toiletries-toggle').checked;
   const privateLaptop = document.getElementById('laptop-toggle').checked;
   const nights = Math.round((new Date(ret) - new Date(dep)) / 86400000);
-
-  show('screen-loading');
-
+  show('screen-loading', 'Munich Trip');
   let weather = null;
   try {
-    document.getElementById('loader-text').textContent = 'checking munich weather...';
     const dates = getDates(dep, ret);
     const start = dates[0].toISOString().split('T')[0];
     const end = dates[dates.length-1].toISOString().split('T')[0];
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${MUNICH_LAT}&longitude=${MUNICH_LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FBerlin&start_date=${start}&end_date=${end}`;
-    const res = await fetch(url);
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${MUNICH_LAT}&longitude=${MUNICH_LON}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Europe%2FBerlin&start_date=${start}&end_date=${end}`);
     weather = await res.json();
-    document.getElementById('loader-text').textContent = 'building your list...';
-    await sleep(600);
-  } catch(e) {
-    await sleep(800);
-  }
-
-  const wInfo = analyzeWeather(weather);
-  renderTrip(dep, ret, nights, wInfo, weather, gym, toiletries, privateLaptop);
-  show('screen-list');
+    document.getElementById('loader-text').textContent = 'Building your list…';
+    await sleep(400);
+  } catch(e) { await sleep(600); }
+  const w = analyzeWeather(weather);
+  renderTrip(dep, ret, nights, w, weather, gym, toiletries, privateLaptop);
+  show('screen-list', 'Packing List');
 }
 
 function getDates(dep, ret) {
@@ -276,25 +440,22 @@ function getDates(dep, ret) {
   return dates;
 }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
 function analyzeWeather(data) {
-  if (!data || !data.daily) return { cold: false, warm: false, mild: true, hasRain: false, hasSnow: false, codes: [] };
+  if (!data || !data.daily) return { cold:false, warm:false, mild:true, hasRain:false, hasSnow:false };
   const avg = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
   const avgMax = avg(data.daily.temperature_2m_max);
   return {
     cold: avgMax < 10, warm: avgMax > 22, mild: avgMax >= 10 && avgMax <= 22,
     hasRain: data.daily.weathercode.some(c => c >= 51 && c < 71),
-    hasSnow: data.daily.weathercode.some(c => c >= 71 && c <= 77),
-    codes: data.daily.weathercode, maxTemps: data.daily.temperature_2m_max, minTemps: data.daily.temperature_2m_min
+    hasSnow: data.daily.weathercode.some(c => c >= 71 && c <= 77)
   };
 }
-
 function wCodeInfo(c) {
   if (c===0) return {icon:'☀️',desc:'Clear'};
   if (c<=2) return {icon:'⛅',desc:'Partly cloudy'};
   if (c===3) return {icon:'☁️',desc:'Overcast'};
   if (c<=48) return {icon:'🌫️',desc:'Fog'};
-  if (c<=57) return {icon:'🌧️',desc:'Drizzle'};
+  if (c<=57) return {icon:'🌦️',desc:'Drizzle'};
   if (c<=67) return {icon:'🌧️',desc:'Rain'};
   if (c<=77) return {icon:'❄️',desc:'Snow'};
   if (c<=82) return {icon:'🌦️',desc:'Showers'};
@@ -302,14 +463,16 @@ function wCodeInfo(c) {
 }
 
 function renderTrip(dep, ret, nights, w, weatherData, gym, toiletries, privateLaptop) {
-  const fmtDate = d => new Date(d).toLocaleDateString('en-DE', {day:'numeric', month:'short'});
-  document.getElementById('trip-title').innerHTML = `<strong>Munich</strong> · ${fmtDate(dep)} – ${fmtDate(ret)}`;
-  document.getElementById('trip-meta').textContent = `${nights} night${nights>1?'s':''} · office trip`;
+  const fmt = d => new Date(d).toLocaleDateString('en-DE', {day:'numeric', month:'short'});
+  document.getElementById('trip-title').textContent = 'Munich';
+  document.getElementById('trip-meta').textContent = `${fmt(dep)} – ${fmt(ret)} · ${nights} night${nights>1?'s':''} · office trip`;
 
   if (weatherData && weatherData.daily) {
     const dates = getDates(dep, ret);
     const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    let html = `<div class="weather-strip"><div class="weather-strip-label">Munich forecast</div><div class="weather-days">`;
+    let html = `<div class="weather-card" style="margin:16px 16px 0;">
+      <div class="weather-card-label">☁ Munich Forecast</div>
+      <div class="weather-days">`;
     dates.forEach((d, i) => {
       const info = wCodeInfo(weatherData.daily.weathercode[i]);
       const hi = Math.round(weatherData.daily.temperature_2m_max[i]);
@@ -324,151 +487,120 @@ function renderTrip(dep, ret, nights, w, weatherData, gym, toiletries, privateLa
   allItemIds = []; checkedIds.clear();
   let html = '';
   sections.forEach(sec => {
-    const secId = sec.key;
-    const items = sec.items;
-    items.forEach((_, i) => allItemIds.push(`${secId}-${i}`));
-    html += `<div class="list-section">
-      <div class="list-section-hdr">${sec.label} <span class="sec-count" id="count-${secId}"></span></div>
-      <div class="list-card" id="card-${secId}">`;
-    items.forEach((item, i) => {
-      const id = `${secId}-${i}`;
-      html += `<div class="list-item" id="row-${id}" onclick="toggle('${id}')">
-        <div class="item-check" id="chk-${id}"></div>
-        <div class="item-text" id="txt-${id}">${item.name}</div>
-        ${item.qty ? `<div class="item-qty">×${item.qty}</div>` : ''}
+    sec.items.forEach((_, i) => allItemIds.push(`${sec.key}-${i}`));
+    html += `<div class="pack-section">
+      <div class="pack-section-header">
+        <span>${sec.label}</span>
+        <span class="pack-section-count" id="count-${sec.key}"></span>
+      </div>
+      <div class="pack-table" id="card-${sec.key}">`;
+    sec.items.forEach((item, i) => {
+      const id = `${sec.key}-${i}`;
+      html += `<div class="pack-item" id="row-${id}" onclick="toggle('${id}')">
+        <div class="check-circle" id="chk-${id}"></div>
+        <div class="pack-label" id="txt-${id}">${item.name}</div>
+        ${item.qty ? `<div class="pack-qty">×${item.qty}</div>` : ''}
       </div>`;
     });
     html += `<div class="add-row">
-      <input class="add-input" id="add-${secId}" placeholder="Add item..." onkeydown="if(event.key==='Enter')addItem('${secId}')">
-      <button class="add-btn" onclick="addItem('${secId}')">+</button>
+      <input type="text" id="add-${sec.key}" placeholder="Add item…" onkeydown="if(event.key==='Enter')addItem('${sec.key}')">
+      <button class="add-plus" onclick="addItem('${sec.key}')">+</button>
     </div>`;
     html += `</div></div>`;
   });
   document.getElementById('packing-sections').innerHTML = html;
-  sections.forEach(sec => updateSectionCount(sec.key, sec.items.length));
+  sections.forEach(s => updateSectionCount(s.key));
   updateProgress();
 }
 
 function toggle(id) {
-  if (checkedIds.has(id)) checkedIds.delete(id);
-  else checkedIds.add(id);
+  checkedIds.has(id) ? checkedIds.delete(id) : checkedIds.add(id);
   const done = checkedIds.has(id);
-  document.getElementById('chk-' + id).className = 'item-check' + (done ? ' done' : '');
-  document.getElementById('txt-' + id).className = 'item-text' + (done ? ' done' : '');
+  document.getElementById('chk-'+id).className = 'check-circle'+(done?' checked':'');
+  document.getElementById('txt-'+id).className = 'pack-label'+(done?' checked':'');
+  const secKey = id.replace(/-[^-]*$/, '');
+  updateSectionCount(secKey);
   updateProgress();
 }
 
 function addItem(secKey) {
-  const input = document.getElementById('add-' + secKey);
-  const val = input.value.trim();
-  if (!val) return;
-  const idx = allItemIds.filter(id => id.startsWith(secKey+'-')).length;
-  const id = `${secKey}-custom-${Date.now()}`;
+  const input = document.getElementById('add-'+secKey);
+  const val = input.value.trim(); if (!val) return;
+  const id = `${secKey}-c${Date.now()}`;
   allItemIds.push(id);
-  const card = document.getElementById('card-' + secKey);
+  const card = document.getElementById('card-'+secKey);
   const addRow = card.querySelector('.add-row');
   const el = document.createElement('div');
-  el.className = 'list-item'; el.id = 'row-' + id;
+  el.className = 'pack-item'; el.id = 'row-'+id;
   el.onclick = () => toggle(id);
-  el.innerHTML = `<div class="item-check" id="chk-${id}"></div><div class="item-text" id="txt-${id}">${val}</div>`;
+  el.innerHTML = `<div class="check-circle" id="chk-${id}"></div><div class="pack-label" id="txt-${id}">${val}</div>`;
   card.insertBefore(el, addRow);
   input.value = '';
-  const secItems = allItemIds.filter(i => i.startsWith(secKey+'-'));
-  updateSectionCount(secKey, secItems.length);
+  updateSectionCount(secKey);
   updateProgress();
 }
 
-function updateSectionCount(secKey, total) {
-  const checked = allItemIds.filter(id => id.startsWith(secKey+'-') && checkedIds.has(id)).length;
-  const el = document.getElementById('count-' + secKey);
-  if (el) el.textContent = checked > 0 ? `${checked}/${total}` : '';
+function updateSectionCount(secKey) {
+  const items = allItemIds.filter(id => id === secKey || id.startsWith(secKey+'-'));
+  const checked = items.filter(id => checkedIds.has(id)).length;
+  const el = document.getElementById('count-'+secKey);
+  if (el) el.textContent = checked > 0 ? `${checked} / ${items.length}` : '';
 }
 
 function updateProgress() {
-  const total = allItemIds.length;
-  const done = checkedIds.size;
+  const total = allItemIds.length, done = checkedIds.size;
   const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-fill').style.width = pct+'%';
   document.getElementById('prog-text').textContent = `${done} of ${total} packed`;
-  document.getElementById('prog-pct').textContent = pct + '%';
-  const secKeys = [...new Set(allItemIds.map(id => id.replace(/-[^-]*$/, '')))];
-  secKeys.forEach(k => {
-    const total = allItemIds.filter(id => id.startsWith(k+'-')).length;
-    updateSectionCount(k, total);
-  });
+  document.getElementById('prog-pct').textContent = pct+'%';
 }
 
 function buildSections(nights, w, gym, toiletries, privateLaptop) {
-  const socks = nights + 1;
-  const pants = Math.ceil((nights+1)/2);
-  const gymShirts = Math.max(1, Math.ceil(nights/2));
-
+  const n = nights + 1;
+  const pants = Math.ceil(n/2);
   return [
-    {
-      key: 'work', label: '💼 Work essentials',
-      items: [
-        {name:'Work laptop'}, {name:'Work badge / access card'}, {name:'Notebook & pen'}, {name:'Reusable water bottle'},
-      ]
-    },
-    {
-      key: 'tech', label: '🔌 Tech & charging',
-      items: [
-        {name:'iPhone'}, {name:'iPad'}, {name:'Apple Watch'},
-        {name:'Laptop charger (work)'}, {name:'iPhone cable / charger'}, {name:'iPad charger'},
-        {name:'Apple Watch charger'}, {name:'Power bank'},
-        ...(privateLaptop ? [{name:'Private laptop'},{name:'Private laptop charger'}] : []),
-      ]
-    },
-    {
-      key: 'clothing', label: '👕 Clothing',
-      items: [
-        {name:'T-shirts / casual tops', qty: socks},
-        {name:'Underwear', qty: socks},
-        {name:'Socks', qty: socks},
-        {name:'Smart-casual trousers / chinos', qty: pants},
-        {name:'Pyjamas'},
-        {name:'Belt'},
-        ...(w.cold || w.hasSnow ? [{name:'Warm coat'},{name:'Jumper / hoodie'},{name:'Scarf & gloves'}] : []),
-        ...(w.mild ? [{name:'Light jacket or hoodie'}] : []),
-        ...(w.warm ? [{name:'Light layer for A/C indoors'}] : []),
-        ...(w.hasRain && !w.hasSnow ? [{name:'Compact umbrella / rain jacket'}] : []),
-        ...(w.hasSnow ? [{name:'Waterproof boots'}] : []),
-      ]
-    },
-    {
-      key: 'footwear', label: '👟 Footwear',
-      items: [
-        {name:'Smart-casual shoes (office)'}, {name:'Casual sneakers'},
-      ]
-    },
-    {
-      key: 'personal', label: '🪪 Personal essentials',
-      items: [
-        {name:'Wallet'}, {name:'House keys'}, {name:'Reading glasses'},
-        {name:'Sunglasses'}, {name:'ID / passport'},
-      ]
-    },
-    ...(gym ? [{
-      key: 'gym', label: '🏋️ Gym bag',
-      items: [
-        {name:'Gym card'}, {name:'Gym shoes'}, {name:'Gym pants'},
-        {name:'Gym shirts', qty: gymShirts}, {name:'Sports socks'}, {name:'Gym towel'},
-      ]
-    }] : []),
-    ...(toiletries ? [{
-      key: 'toiletries', label: '🧴 Munich go bag restock',
-      items: [
-        {name:'Shower gel'}, {name:'Shampoo'}, {name:'Contact lenses (supply)'},
-        {name:'Contact lens solution'}, {name:'Pomade / hair product'},
-        {name:'After shave / balm'}, {name:'Deodorant'}, {name:'Toothbrush & toothpaste'},
-      ]
-    }] : []),
+    { key:'work', label:'💼  Work Essentials', items:[
+      {name:'Work laptop'},{name:'Work badge / access card'},
+      {name:'Notebook & pen'},{name:'Reusable water bottle'},
+    ]},
+    { key:'tech', label:'🔌  Tech & Charging', items:[
+      {name:'iPhone'},{name:'iPad'},{name:'Apple Watch'},
+      {name:'Laptop charger (work)'},{name:'iPhone cable / charger'},
+      {name:'iPad charger'},{name:'Apple Watch charger'},{name:'Power bank'},
+      ...(privateLaptop?[{name:'Private laptop'},{name:'Private laptop charger'}]:[]),
+    ]},
+    { key:'clothing', label:'👕  Clothing', items:[
+      {name:'T-shirts / casual tops', qty:n},
+      {name:'Underwear', qty:n},{name:'Socks', qty:n},
+      {name:'Smart-casual trousers / chinos', qty:pants},
+      {name:'Pyjamas'},{name:'Belt'},
+      ...(w.cold||w.hasSnow?[{name:'Warm coat'},{name:'Jumper / hoodie'},{name:'Scarf & gloves'}]:[]),
+      ...(w.mild?[{name:'Light jacket or hoodie'}]:[]),
+      ...(w.warm?[{name:'Light layer for A/C indoors'}]:[]),
+      ...(w.hasRain&&!w.hasSnow?[{name:'Compact umbrella / rain jacket'}]:[]),
+      ...(w.hasSnow?[{name:'Waterproof boots'}]:[]),
+    ]},
+    { key:'footwear', label:'👟  Footwear', items:[
+      {name:'Smart-casual shoes (office)'},{name:'Casual sneakers'},
+    ]},
+    { key:'personal', label:'🪪  Personal Essentials', items:[
+      {name:'Wallet'},{name:'House keys'},{name:'Reading glasses'},
+      {name:'Sunglasses'},{name:'ID / passport'},
+    ]},
+    ...(gym?[{ key:'gym', label:'🏋️  Gym Bag', items:[
+      {name:'Gym card'},{name:'Gym shoes'},{name:'Gym pants'},
+      {name:'Gym shirts', qty:Math.max(1,Math.ceil(nights/2))},
+      {name:'Sports socks'},{name:'Gym towel'},
+    ]}]:[]),
+    ...(toiletries?[{ key:'toiletries', label:'🧴  Munich Go Bag Restock', items:[
+      {name:'Shower gel'},{name:'Shampoo'},{name:'Contact lenses (supply)'},
+      {name:'Contact lens solution'},{name:'Pomade / hair product'},
+      {name:'After shave / balm'},{name:'Deodorant'},{name:'Toothbrush & toothpaste'},
+    ]}]:[]),
   ];
 }
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
